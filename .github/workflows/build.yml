@@ -2,13 +2,29 @@ name: Build APK
 on: [push]
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
-    - name: Build with Buildozer
-      uses: ArtemSBulgakov/buildozer-action@v1
-      with:
-        command: buildozer android debug
+    - name: Install Python
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-pip build-essential git
+        sudo apt-get install -y libffi-dev libssl-dev zlib1g-dev
+        sudo apt-get install -y openjdk-17-jdk
+        pip3 install buildozer cython virtualenv
+    - name: Accept licenses and install SDK tools
+      run: |
+        mkdir -p ~/.android
+        touch ~/.android/repositories.cfg
+        export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
+    - name: Build APK
+      run: |
+        buildozer init
+        sed -i 's/title = My Application/title = Ghana Projection Tool/' buildozer.spec
+        sed -i 's/package.name = myapp/package.name = ghanaapp/' buildozer.spec
+        sed -i 's/package.domain = org.test/package.domain = org.knust/' buildozer.spec
+        buildozer -v android debug 2>&1
     - uses: actions/upload-artifact@v4
       with:
         name: GhanaProjectionTool
