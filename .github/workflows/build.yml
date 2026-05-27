@@ -1,0 +1,24 @@
+name: Build Android APK
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Get Buildozer Action
+      uses: ArtemSBulgakov/buildozer-action@v3
+      with:
+        buildozer_version: stable
+        command: buildozer android debug
+        repository_read_token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload APK Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: package
+        path: ./**/*.apk
+        
